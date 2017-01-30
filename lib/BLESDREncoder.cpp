@@ -134,6 +134,9 @@ double BLESDR::get_channel_freq(int channel_number) {
 
 }
 
+#define month(m) month_lookup[ (( ((( (m[0] % 24) * 13) + m[1]) % 24) * 13) + m[2]) % 24 ]
+const uint8_t month_lookup[24] = { 0,6,0,4,0,1,0,17,0,8,0,0,3,0,0,0,18,2,16,5,9,0,1,7 };
+
 std::vector<float> BLESDR::sample_for_ADV_IND(size_t chan, uint8_t data_type, uint8_t* buff, size_t buflen) {
 	btle_adv_pdu pdu;
 
@@ -142,12 +145,13 @@ std::vector<float> BLESDR::sample_for_ADV_IND(size_t chan, uint8_t data_type, ui
 
 	const uint32_t access_address = 0x8E89BED6;
 
-	pdu.mac[0] = 0x48;
-	pdu.mac[1] = 0x78;
-	pdu.mac[2] = 0x8C;
-	pdu.mac[3] = 0xCD;
-	pdu.mac[4] = 0xE9;
-	pdu.mac[5] = 0x52;
+	// insert pseudo-random MAC address
+	pdu.mac[0] = ((__TIME__[6] - 0x30) << 4) | (__TIME__[7] - 0x30);
+	pdu.mac[1] = ((__TIME__[3] - 0x30) << 4) | (__TIME__[4] - 0x30);
+	pdu.mac[2] = ((__TIME__[0] - 0x30) << 4) | (__TIME__[1] - 0x30);
+	pdu.mac[3] = ((__DATE__[4] - 0x30) << 4) | (__DATE__[5] - 0x30);
+	pdu.mac[4] = month(__DATE__);
+	pdu.mac[5] = ((__DATE__[9] - 0x30) << 4) | (__DATE__[10] - 0x30) | 0xC0;// static random address should have two topmost bits set
 
 	chunk(pdu, pls)->size = 0x02;  // chunk size: 2
 	chunk(pdu, pls)->type = 0x01;  // chunk type: device flags
