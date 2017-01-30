@@ -287,7 +287,7 @@ int main(int argc, char *argv[]) {
 
 			samples = ble.sample_for_iBeacon(tx_chan, uuid, major, minor);
 		}
-		else {
+		else if(replay){
 			samples = ble.sample_for_Packet(37, packet);
 
 		}
