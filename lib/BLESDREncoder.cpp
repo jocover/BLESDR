@@ -293,20 +293,24 @@ std::vector<float> BLESDR::sample_for_RAW(size_t chan, uint8_t* buff, size_t buf
 	return iqsamples;
 }
 
-std::vector<float> BLESDR::sample_for_Packet(size_t chan, ble_packet pocket) {
+std::vector<float> BLESDR::sample_for_Packet(size_t chan, lell_packet pocket) {
 
 	std::vector<uint8_t> buff;
 
-	for (size_t i = 0; i < pocket.packet_data.size(); i++)
+	uint8_t preamble = 0xAA;
+
+	for (size_t i = 4; i < 6 + pocket.length; ++i)
 	{
-		buff.push_back(pocket.packet_data[i]);
+		buff.push_back(pocket.symbols[i]);
 	}
 
-	buff.push_back(SwapBits(pocket.packet_crc >> 16));
 
-	buff.push_back(SwapBits(pocket.packet_crc >> 8));
+	//crc//
+	for (size_t i = 0; i < 3; i++) {
 
-	buff.push_back(SwapBits(pocket.packet_crc));
+		buff.push_back(pocket.symbols[6 + pocket.length + i]);
+
+	}
 
 	uint8_t* outbuf = (uint8_t*)buff.data();
 
@@ -318,9 +322,12 @@ std::vector<float> BLESDR::sample_for_Packet(size_t chan, ble_packet pocket) {
 
 	iqsamples.resize((numbits*SAMPLE_PER_SYMBOL + (LEN_GAUSS_FILTER*SAMPLE_PER_SYMBOL)) * 2);
 
-	offset = byte_to_bits(&pocket.packet_preamble, 1, bits);
+	offset = byte_to_bits(&preamble, 1, bits);
 
-	offset += byte_to_bits((uint8_t*)&pocket.packet_addr, 4, bits + offset);
+	offset += byte_to_bits(&pocket.symbols[3], 1, bits + offset);
+	offset += byte_to_bits(&pocket.symbols[2], 1, bits + offset);
+	offset += byte_to_bits(&pocket.symbols[1], 1, bits + offset);
+	offset += byte_to_bits(&pocket.symbols[0], 1, bits + offset);
 
 	offset += byte_to_bits(outbuf, buff.size(), bits + offset);
 

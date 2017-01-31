@@ -2,17 +2,17 @@
  *  Copyright 2017 by Jiang Wei <jiangwei@jiangwei.org>
  *
  * This file is part of some open source application.
- * 
- * Some open source application is free software: you can redistribute 
- * it and/or modify it under the terms of the GNU General Public 
- * License as published by the Free Software Foundation, either 
+ *
+ * Some open source application is free software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation, either
  * version 3 of the License, or (at your option) any later version.
- * 
- * Some open source application is distributed in the hope that it will 
- * be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+ *
+ * Some open source application is distributed in the hope that it will
+ * be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
  * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  *
@@ -29,11 +29,50 @@
 #define SAMPLE_PER_SYMBOL 2  // 
 #define LEN_GAUSS_FILTER (4) // pre 2, post 2
 
-struct ble_packet {
-	uint8_t packet_preamble;
-	uint32_t packet_addr;
-	std::vector<uint8_t> packet_data;
-	uint32_t packet_crc;
+
+
+#define MAX_LE_SYMBOLS 64
+
+#define LE_ADV_AA 0x8E89BED6
+
+#define ADV_IND			0
+#define ADV_DIRECT_IND	1
+#define ADV_NONCONN_IND	2
+#define SCAN_REQ		3
+#define SCAN_RSP		4
+#define CONNECT_REQ		5
+#define ADV_SCAN_IND	6
+
+struct lell_packet {
+	// raw unwhitened bytes of packet, including access address
+	uint8_t symbols[MAX_LE_SYMBOLS];
+
+	uint32_t access_address;
+
+	// channel index
+	uint8_t channel_idx;
+	uint8_t channel_k;
+
+	// number of symbols
+	int length;
+
+	uint32_t clk100ns;
+
+	// advertising packet header info
+	uint8_t adv_type;
+	int adv_tx_add;
+	int adv_rx_add;
+
+	unsigned access_address_offenses;
+	uint32_t refcount;
+
+	/* flags */
+	union {
+		struct {
+			uint32_t access_address_ok : 1;
+		} as_bits;
+		uint32_t as_word;
+	} flags;
 };
 
 class BLESDR {
@@ -49,7 +88,7 @@ public:
 		return 2e6;
 	}
 
-	std::function<void(ble_packet)> callback;
+	std::function<void(lell_packet)> callback;
 
 	std::vector<float> BLESDR::sample_for_ADV_IND(size_t chan, uint8_t data_type, uint8_t* buff, size_t bufflen);
 
@@ -57,7 +96,7 @@ public:
 
 	std::vector<float> BLESDR::sample_for_iBeacon(size_t chan, uint8_t* uuid, uint16_t Major, uint16_t Minor);
 
-	std::vector<float> BLESDR::sample_for_Packet(size_t chan, ble_packet pocket);
+	std::vector<float> BLESDR::sample_for_Packet(size_t chan, lell_packet pocket);
 
 	void Receiver(size_t channel, float* samples, size_t samples_len);
 

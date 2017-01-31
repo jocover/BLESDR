@@ -3,17 +3,17 @@
  *  Copyright (c) 2014 Omri Iluz (omri@il.uz / http://cyberexplorer.me)
  *
  * This file is part of some open source application.
- * 
- * Some open source application is free software: you can redistribute 
- * it and/or modify it under the terms of the GNU General Public 
- * License as published by the Free Software Foundation, either 
+ *
+ * Some open source application is free software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation, either
  * version 3 of the License, or (at your option) any later version.
- * 
- * Some open source application is distributed in the hope that it will 
- * be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+ *
+ * Some open source application is distributed in the hope that it will
+ * be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
  * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  *
@@ -166,7 +166,7 @@ bool BLESDR::DecodeBTLEPacket(int32_t sample, int srate) {
 	/* whiten header only so we can extract pdu length */
 	BTLEWhiten(packet_header_arr, 2, chan);
 
-	if (packet_addr_l == 0x8E89BED6) {  // Advertisement packet
+	if (packet_addr_l == LE_ADV_AA) {  // Advertisement packet
 
 		packet_length = SwapBits(packet_header_arr[1]) & 0x3F;
 
@@ -181,15 +181,14 @@ bool BLESDR::DecodeBTLEPacket(int32_t sample, int srate) {
 	ExtractBytes(5 * 8, packet_data, packet_length + 2 + 3);
 	BTLEWhiten(packet_data, packet_length + 2 + 3, chan);
 
-	if (packet_addr_l == 0x8E89BED6) {  // Advertisement packet
-		packet_addr = packet_addr_l;
+	if (packet_addr_l == LE_ADV_AA) {  // Advertisement packet
+		packet_addr = LE_ADV_AA;
 		crc[0] = crc[1] = crc[2] = 0x55;
 
 	}
 	else {
 		crc[0] = crc[1] = crc[2] = 0;		// TODO: data packets unsupported
 	}
-
 
 	/* calculate packet crc */
 
@@ -201,14 +200,28 @@ bool BLESDR::DecodeBTLEPacket(int32_t sample, int srate) {
 	/* BTLE packet found, dump information */
 	if (packet_crc == calced_crc) {
 
-		ble_packet packet;
-		//packet.resize(packet_length + 2);
-		packet.packet_preamble = 0xAA;
-		packet.packet_addr = packet_addr;// Advertisement packet
-		packet.packet_crc = packet_crc;
-		for (c = 0; c < packet_length + 2; c++) {
-			packet.packet_data.push_back(SwapBits(packet_data[c]));
+		int i = 0;
+		lell_packet packet;
+
+		packet.access_address = packet_addr;// Advertisement packet
+		packet.channel_idx = chan;
+		packet.adv_type = packet_data[0] & 0xf;
+		packet.adv_tx_add = packet_data[0] & 0x40 ? 1 : 0;
+		packet.adv_rx_add = packet_data[0] & 0x80 ? 1 : 0;
+		packet.flags.as_bits.access_address_ok = (packet.access_address == 0x8e89bed6);//TODO
+		packet.access_address_offenses = 0;//TODO
+
+		packet.symbols[0] = packet_addr >> 24;
+		packet.symbols[1] = packet_addr >> 16;
+		packet.symbols[2] = packet_addr >> 8;
+		packet.symbols[3] = packet_addr;
+
+		packet.length = packet_length;
+
+		for (i = 0; i < packet_length + 2 + 3; i++) {
+			packet.symbols[i + 4] = (SwapBits(packet_data[i]));
 		}
+
 		callback(packet);
 		return true;
 	}
