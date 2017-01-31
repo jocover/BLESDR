@@ -26,6 +26,7 @@
 #include <time.h>
 #include "BLESDR.hpp"
 #include <getopt.h>
+#include <cstring>
 
 #ifdef _WIN32
 #include <windows.h>

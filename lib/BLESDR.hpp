@@ -90,13 +90,13 @@ public:
 
 	std::function<void(lell_packet)> callback;
 
-	std::vector<float> BLESDR::sample_for_ADV_IND(size_t chan, uint8_t data_type, uint8_t* buff, size_t bufflen);
+	std::vector<float> sample_for_ADV_IND(size_t chan, uint8_t data_type, uint8_t* buff, size_t bufflen);
 
-	std::vector<float> BLESDR::sample_for_RAW(uint8_t* buff, size_t bufflen);
+	std::vector<float> sample_for_RAW(uint8_t* buff, size_t bufflen);
 
-	std::vector<float> BLESDR::sample_for_iBeacon(size_t chan, uint8_t* uuid, uint16_t Major, uint16_t Minor);
+	std::vector<float> sample_for_iBeacon(size_t chan, uint8_t* uuid, uint16_t Major, uint16_t Minor);
 
-	std::vector<float> BLESDR::sample_for_Packet(size_t chan, lell_packet pocket);
+	std::vector<float> sample_for_Packet(size_t chan, lell_packet pocket);
 
 	void Receiver(size_t channel, float* samples, size_t samples_len);
 

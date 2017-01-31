@@ -170,6 +170,10 @@ bool BLESDR::DecodeBTLEPacket(int32_t sample, int srate) {
 
 		packet_length = SwapBits(packet_header_arr[1]) & 0x3F;
 
+		if (packet_length < 2) {
+			return false;
+		}
+
 	}
 	else {
 
