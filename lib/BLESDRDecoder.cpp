@@ -164,7 +164,7 @@ bool BLESDR::DecodeBTLEPacket(int32_t sample, int srate) {
 	ExtractBytes(5 * 8, packet_header_arr, 2);
 
 	/* whiten header only so we can extract pdu length */
-	BTLEWhiten(packet_header_arr, 2, chan);
+	btle_reverse_whiten(chan,packet_header_arr, 2);
 
 	if (packet_addr_l == LE_ADV_AA) {  // Advertisement packet
 
@@ -179,7 +179,7 @@ bool BLESDR::DecodeBTLEPacket(int32_t sample, int srate) {
 
 	/* extract and whiten pdu+crc */
 	ExtractBytes(5 * 8, packet_data, packet_length + 2 + 3);
-	BTLEWhiten(packet_data, packet_length + 2 + 3, chan);
+	btle_reverse_whiten(chan,packet_data, packet_length + 2 + 3);
 
 	if (packet_addr_l == LE_ADV_AA) {  // Advertisement packet
 		packet_addr = LE_ADV_AA;
@@ -192,7 +192,7 @@ bool BLESDR::DecodeBTLEPacket(int32_t sample, int srate) {
 
 	/* calculate packet crc */
 
-	calced_crc = BTLECrc(packet_data, packet_length + 2, crc);
+	calced_crc = btle_reverse_crc(packet_data, packet_length + 2, crc);
 
 	packet_crc = 0;
 	for (c = 0; c < 3; c++) packet_crc = (packet_crc << 8) | packet_data[packet_length + 2 + c];
@@ -229,7 +229,7 @@ bool BLESDR::DecodeBTLEPacket(int32_t sample, int srate) {
 }
 
 
-void BLESDR::BTLEWhiten(uint8_t* data, uint8_t len, uint8_t chan) {
+void BLESDR::btle_reverse_whiten(uint8_t chan,uint8_t* data, uint8_t len) {
 
 	uint8_t  i;
 	uint8_t lfsr = SwapBits(chan) | 2;
@@ -248,7 +248,7 @@ void BLESDR::BTLEWhiten(uint8_t* data, uint8_t len, uint8_t chan) {
 }
 
 
-uint32_t BLESDR::BTLECrc(const uint8_t* data, uint8_t len, uint8_t* dst) {
+uint32_t BLESDR::btle_reverse_crc(const uint8_t* data, uint8_t len, uint8_t* dst) {
 
 	uint8_t v, t, d;
 	uint32_t crc = 0;

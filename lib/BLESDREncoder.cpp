@@ -56,7 +56,7 @@ size_t BLESDR::byte_to_bits(uint8_t* byte, size_t len, char* bits) {
 	return len * 8;
 }
 
-void BLESDR::Encrc(void* src, uint8_t len, uint8_t* dst) {
+void BLESDR::btle_calc_crc(void* src, uint8_t len, uint8_t* dst) {
 
 	uint8_t* buf = (uint8_t*)src;
 
@@ -88,7 +88,7 @@ void BLESDR::Encrc(void* src, uint8_t len, uint8_t* dst) {
 	}
 }
 
-void BLESDR::whiten(uint8_t chan, uint8_t* buf, uint8_t len) {
+void BLESDR::btle_whiten(uint8_t chan, uint8_t* buf, uint8_t len) {
 
 	// initialize LFSR with current channel, set bit 6
 	uint8_t lfsr = chan | 0x40;
@@ -174,9 +174,9 @@ std::vector<float> BLESDR::sample_for_ADV_IND(size_t chan, uint8_t data_type, ui
 	// calculate CRC over header+MAC+payload, append after payload
 	uint8_t* outbuf = (uint8_t*)&pdu;
 
-	Encrc(&pdu, pls + 8, outbuf + pls + 8);
+	btle_calc_crc(&pdu, pls + 8, outbuf + pls + 8);
 
-	whiten(chan, outbuf, pls + 11);
+	btle_whiten(chan, outbuf, pls + 11);
 
 	size_t numbits = (pls + 11 + 5) * 8;
 	int offset = 0;
@@ -279,7 +279,7 @@ std::vector<float> BLESDR::sample_for_iBeacon(size_t chan, uint8_t* uuid, uint16
 
 }
 
-std::vector<float> BLESDR::sample_for_RAW(size_t chan, uint8_t* buff, size_t bufflen) {
+std::vector<float> BLESDR::sample_for_RAW(uint8_t* buff, size_t bufflen) {
 
 	size_t numbits = (bufflen) * 8;
 	char * bits = new char[numbits];
@@ -314,7 +314,7 @@ std::vector<float> BLESDR::sample_for_Packet(size_t chan, lell_packet pocket) {
 
 	uint8_t* outbuf = (uint8_t*)buff.data();
 
-	whiten(chan, outbuf, buff.size());
+	btle_whiten(chan, outbuf, buff.size());
 
 	size_t numbits = (buff.size() + 5) * 8;
 	int offset = 0;

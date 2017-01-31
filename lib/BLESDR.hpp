@@ -92,7 +92,7 @@ public:
 
 	std::vector<float> BLESDR::sample_for_ADV_IND(size_t chan, uint8_t data_type, uint8_t* buff, size_t bufflen);
 
-	std::vector<float> BLESDR::sample_for_RAW(size_t chan, uint8_t* buff, size_t bufflen);
+	std::vector<float> BLESDR::sample_for_RAW(uint8_t* buff, size_t bufflen);
 
 	std::vector<float> BLESDR::sample_for_iBeacon(size_t chan, uint8_t* uuid, uint16_t Major, uint16_t Minor);
 
@@ -108,9 +108,9 @@ private:
 
 	float* generate_gaussian_taps(unsigned samples_per_sym, unsigned L, double bt);
 
-	void Encrc(void* src, uint8_t len, uint8_t* dst);
+	void btle_calc_crc(void* src, uint8_t len, uint8_t* dst);
 
-	void whiten(uint8_t chan, uint8_t* buf, uint8_t len);
+	void btle_whiten(uint8_t chan, uint8_t* buf, uint8_t len);
 
 #define chunk(x,y) ((btle_pdu_chunk*)(x.payload+y))
 
@@ -177,8 +177,8 @@ private:
 
 	bool DecodeBTLEPacket(int32_t sample, int srate);
 
-	void BTLEWhiten(uint8_t* data, uint8_t len, uint8_t chan);
+	void btle_reverse_whiten(uint8_t chan,uint8_t* data, uint8_t len);
 
-	uint32_t BTLECrc(const uint8_t* data, uint8_t len, uint8_t* dst);
+	uint32_t btle_reverse_crc(const uint8_t* data, uint8_t len, uint8_t* dst);
 
 };
