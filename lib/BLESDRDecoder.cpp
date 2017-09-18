@@ -215,10 +215,10 @@ bool BLESDR::DecodeBTLEPacket(int32_t sample, int srate) {
 		packet.flags.as_bits.access_address_ok = (packet.access_address == 0x8e89bed6);//TODO
 		packet.access_address_offenses = 0;//TODO
 
-		packet.symbols[0] = packet_addr >> 24;
-		packet.symbols[1] = packet_addr >> 16;
-		packet.symbols[2] = packet_addr >> 8;
-		packet.symbols[3] = packet_addr;
+		packet.symbols[0] = packet_addr;
+		packet.symbols[1] = packet_addr >> 8;
+		packet.symbols[2] = packet_addr >> 16;
+		packet.symbols[3] = packet_addr >> 24;
 
 		packet.length = packet_length;
 

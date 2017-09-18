@@ -324,10 +324,10 @@ std::vector<float> BLESDR::sample_for_Packet(size_t chan, lell_packet pocket) {
 
 	offset = byte_to_bits(&preamble, 1, bits);
 
-	offset += byte_to_bits(&pocket.symbols[3], 1, bits + offset);
-	offset += byte_to_bits(&pocket.symbols[2], 1, bits + offset);
-	offset += byte_to_bits(&pocket.symbols[1], 1, bits + offset);
 	offset += byte_to_bits(&pocket.symbols[0], 1, bits + offset);
+	offset += byte_to_bits(&pocket.symbols[1], 1, bits + offset);
+	offset += byte_to_bits(&pocket.symbols[2], 1, bits + offset);
+	offset += byte_to_bits(&pocket.symbols[3], 1, bits + offset);
 
 	offset += byte_to_bits(outbuf, buff.size(), bits + offset);
 
